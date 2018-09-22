@@ -26,13 +26,35 @@
     firebase.initializeApp(config);
     var chatDB= firebase.database().ref('chat');
     var msjDB;
+    //obtener lista de usuarios para agregar chats
+    
+    var getUserList = (id)=>{
+      var parametros = {
+        "id":id,
+      };
+      $.ajax({
+        url : 'request/getUserList2.php',
+        data : parametros,
+        type : 'GET',
+        success : function(req) {
+          document.getElementById("user-list").innerHTML=req;
+        },
+        error : function(xhr, status) {
+            alert('Disculpe, existió un problema');
+        },
+        complete : function(xhr, status) {
+            //console.log('Petición realizada');
+        }
+      });
+    };
+    getUserList(user);
     // funcion para setear los mensajes
     var setMsjDB = (idChat)=>{
       msjDB = firebase.database().ref('chat/'+idChat+'/Message');
     }
 
     
-    var getMsjDB = ()=>{
+    var getMsjDB = (idChat)=>{
       msjDB.limitToLast(20).on('value',function(snapshot){
         
         $(".msg_history").html(""); // Limpiamos todo el contenido del chat
@@ -51,6 +73,7 @@
                 $('.msg_history #template'+type).show(10);
                 $('.msg_history #template'+type+' .Body').html(objeto.Body);
                 $('.msg_history #template'+type+' .Date').html(objeto.Date);
+                $('.msg_history #template'+type+' .Foto').attr("src",document.getElementById(idChat).children[0].children[0].children[0].src);
                 $('.msg_history #template'+type).attr("id",e.key);
                 // var id="";
                 // id=e.key;
@@ -102,7 +125,7 @@
         type : 'GET',
         success : function(req) {
           userAvData=JSON.parse(req);
-          $('#'+id+' .Nombre').html(userAvData.nombre +' ' +userAvData.apellido+$('#'+id+' .Nombre').html());
+          $('#'+id+' .Nombre').html(userAvData.nombre +' ' +userAvData.apellido);
           $('#'+id+' .Foto').attr('src',userAvData.foto);
         },
         error : function(xhr, status) {
@@ -112,7 +135,7 @@
             //console.log('Petición realizada');
         }
       });
-      //return userAvData;
+      return userAvData;
     };
     //Obtener los chats
   chatDB.limitToLast(20).on('value',function(snapshot){
@@ -152,8 +175,8 @@
           document.getElementById(id).addEventListener('click',()=>{
             //idChat=e.key;
             setMsjDB(e.key);
-            getMsjDB();
-            $('#header-msj .Nombre').html($('#'+id+' .Nombre').html());
+            getMsjDB(e.key);
+            $('#header-msj .Nombre').html($('#'+id+' .Nombre').html() );
             console.log('oh yeah');
           });
         }
@@ -173,16 +196,7 @@
                       </span> </div>
                   </div>
                 <ul id="user-list" class="list-group" >
-                    <li value="5" class="list-group-item"><div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
-                    </div><p>Doctor 5</p></li>
-                    <li value="7" class="list-group-item"><div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
-                    </div><p>Doctor 7</p></li>
-                    <li value="9" class="list-group-item"><div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
-                    </div><p>Doctor 9</p></li>
-                    <li value="10" class="list-group-item"><div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
-                    </div><p>Doctor 10</p></li>
-                    <li value="1" class="list-group-item"><div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
-                    </div><p>Doctor 1</p></li>
+                  <!-- users to add here -->
                 </ul>
             </div>
         </ul>
@@ -231,7 +245,7 @@
           <div class="chat_people">
           <div class="chat_img"> <img class="Foto" src="http://placehold.it/50/55C1E7/fff&text=U"> </div>
           <div class="chat_ib">
-              <h5 class="Nombre"><span class="chat_date Fecha">fecha</span></h5>
+              <h5 class="Nombre"> </h5> <h5><span class="chat_date Fecha">fecha</span></h5>
               <p class="LastMsj">ultimo msj</p>
           </div>
       </div>
@@ -245,7 +259,7 @@
       </div>
       <!-- Template de recibidos -->
       <div style="display:none;" id="templatein" class="incoming_msg">
-        <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
+        <div class="incoming_msg_img"> <img class="Foto" src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
           <div class="received_msg">
             <div class="received_withd_msg">
               <p class="Body">body</p>
