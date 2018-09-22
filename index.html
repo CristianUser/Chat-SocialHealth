@@ -11,7 +11,8 @@
   <script src="./js/jquery-3.3.1.js"></script>
   <script src="https://www.gstatic.com/firebasejs/5.5.1/firebase.js"></script>
   <script>
-    var user=4;
+    var user=5;
+    var idChat="";
     // Initialize Firebase
     var config = {
       apiKey: "AIzaSyDexXq2xNPP6YsZs6k4ut-yl3mdSSAJVdI",
@@ -23,12 +24,111 @@
     };
     firebase.initializeApp(config);
     var chatDB= firebase.database().ref('chat');
+    var msjDB;
+    // funcion para setear los mensajes
+    var setMsjDB = ()=>{
+      msjDB = firebase.database().ref('chat/'+idChat+'/Message');
+    }
+    
+    var getMsjDB = ()=>{
+      msjDB.limitToLast(20).on('value',function(snapshot){
+        
+        $(".msg_history").html(""); // Limpiamos todo el contenido del chat
+       
+       // Leer todos los mensajes en firebase
+       snapshot.forEach(function(e){
+           var objeto=e.val(); // Asignar todos los valores a un objeto
+           var type="";
+           console.log(objeto);
+                //if ( objeto.Members.indexOf(user) != -1 ) 
+                if(objeto.Author==user){
+                  type="out";
+                }else{type="in";}
+                // Copia el contenido al template y luego lo inserta en el chat
+                $( "#template"+type ).clone().appendTo( ".msg_history" );
+                $('.msg_history #template'+type).show(10);
+                $('.msg_history #template'+type+' .Body').html(objeto.Body);
+                $('.msg_history #template'+type+' .Date').html(objeto.Date);
+                $('.msg_history #template'+type).attr("id",e.key);
+                var id="";
+                id=e.key;
+                document.getElementById(id).addEventListener('click',()=>{
+                  idChat=e.key;
+                  setMsjDB();
+                  console.log('oh yeah');
+                });
+            
+           
+       });
+   });
+
+    };
+    // funcion para agregar chats a la lista
     var agregarChat = (userAv)=>{
+      var validate=false;
+      chatDB.limitToLast(20).on('value',function(snapshot){
+        snapshot.forEach(function(e){
+          obj=e.val();
+          if(obj.Members==[user,userAv]){
+            return validate= false;
+          }else if(obj.Members==[userAv,user]){
+            return validate= false;
+          }
+          else{
+            return validate= true;
+          }
+        })
+      });
+      if(validate){
       chatDB.push({
         Members:[user,userAv],
         Message:[]
+      });
+      }
+    };
+    // funcion para enviar mensajes
+    var enviarMsj = (body)=>{
+      var formatDate= new Date(); 
+        var d= formatDate.getUTCDate();
+        var m= formatDate.getMonth()+1;
+        var y= formatDate.getFullYear();
+        var h=formatDate.getHours();
+        var min= formatDate.getMinutes();
+        fDate= d+"/"+m+"/"+y+" "+h+":"+min;
+      msjDB.push({
+        Author:user,
+        Body:body,
+        Date:fDate,
+        Status:'Sent'
       })
     };
+   chatDB.limitToLast(20).on('value',function(snapshot){
+        
+        $(".inbox_chat").html(""); // Limpiamos todo el contenido del chat
+       
+          // Leer todos los mensajes en firebase
+          snapshot.forEach(function(e){
+              var objeto=e.val(); // Asignar todos los valores a un objeto
+              //console.log(e.key);
+                    if ( objeto.Members.indexOf(user) != -1 ) {
+                    // Copia el contenido al template y luego lo inserta en el chat
+                    $( "#template" ).clone().prependTo( ".inbox_chat" );
+                    $('.inbox_chat #template').show(10);
+                    $('.inbox_chat #template .Nombre').html(objeto.Members[0]);
+                    $('.inbox_chat #template .LastMsj').html(objeto.Members[1]);
+                    //$('.chat-list #template .Tiempo').html(objeto.Fecha);
+                    $('.inbox_chat #template').attr("id",e.key);
+                    var id="";
+                    id=e.key;
+                    document.getElementById(id).addEventListener('click',()=>{
+                      idChat=e.key;
+                      setMsjDB();
+                      getMsjDB();
+                      console.log('oh yeah');
+                    });
+                }
+          });
+      });
   </script>
 </head>
 <body>     
@@ -44,9 +144,15 @@
                   </div>
                 <ul id="user-list" class="list-group" >
                     <li value="5" class="list-group-item"><div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
-                    </div><p>Cras justo odio</p></li>
+                    </div><p>Doctor 5</p></li>
                     <li value="7" class="list-group-item"><div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
-                    </div><p>Cras justo odio</p></li>
+                    </div><p>Doctor 7</p></li>
+                    <li value="9" class="list-group-item"><div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
+                    </div><p>Doctor 9</p></li>
+                    <li value="10" class="list-group-item"><div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
+                    </div><p>Doctor 10</p></li>
+                    <li value="1" class="list-group-item"><div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
+                    </div><p>Doctor 1</p></li>
                 </ul>
             </div>
         </ul>
@@ -80,8 +186,7 @@
               <div class="type_msg">
                 <div class="input_msg_write">
                   <form name="formulario">
-                    <input type="hidden" name="to" value="5">
-                    <input name="texto" type="text" class="write_msg" placeholder="Escribir Mensaje" />
+                    <input autocomplete="off" name="body" type="text" class="write_msg" placeholder="Escribir Mensaje" />
                     <button id="enviarbtn" class="msg_send_btn" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
                   </form>
                 </div>
@@ -89,6 +194,32 @@
             </div>
           </div>
         </div>
+      </div>
+      <!-- Template de los chats -->
+      <div style="display:none;" value="" id="template" class=" chat_list">
+          <div class="chat_people">
+          <div class="chat_img"> <img src="http://placehold.it/50/55C1E7/fff&text=U"> </div>
+          <div class="chat_ib">
+              <h5 class="Nombre"><span class="chat_date Fecha">fecha</span></h5>
+              <p class="LastMsj">ultimo msj</p>
+          </div>
+      </div>
+      </div>
+      <!-- Template de mensajes -->
+      <!-- Template de enviados -->
+      <div style="display:none;" id="templateout" class="outgoing_msg">
+          <div class="sent_msg">
+          <p class="Body">body</p>
+          <span class="time_date Date">hora   |    dia </span> </div>
+      </div>
+      <!-- Template de recibidos -->
+      <div style="display:none;" id="templatein" class="incoming_msg">
+        <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
+          <div class="received_msg">
+            <div class="received_withd_msg">
+              <p class="Body">body</p>
+              <span class="time_date"> hora    |    fecha</span></div>
+          </div>
       </div>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
       <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
@@ -116,7 +247,6 @@
           }
         };
         //popover 
-        
         $("[data-toggle=popover]").popover({
           html: true, 
           content: function() {
@@ -126,12 +256,12 @@
         //boton enviar mensaje
         var boton = document.getElementById("enviarbtn");
           boton.addEventListener('click',(e)=>{
-            if(formulario.texto.value!=""){
-            //enviar
+            if(formulario.body.value!=""){
+            enviarMsj(formulario.body.value);
             }
-            formulario.texto.value="";
+            formulario.body.value="";
             e.preventDefault();
-          });    
+          });
     </script>
   </body>
 </html>
