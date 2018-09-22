@@ -5,7 +5,11 @@
     $persona = $mysqli->query($sql);
     $result=$persona->fetch_assoc();
     $myJSON = json_encode($result);
-
-    echo $myJSON;
+    $img_file="../../SocialHealth/login/files/$id/perfil.png";
+    $imgData = base64_encode(file_get_contents($img_file));
+    // Format the image SRC:  data:{mime};base64,{data};
+    $perfil = 'data: '.mime_content_type($img_file).';base64,'.$imgData;
+    //header('Content-Type: application/json');
+    echo substr($myJSON, 0, -1),',"foto":"',$perfil,'"}';
 
 ?>
