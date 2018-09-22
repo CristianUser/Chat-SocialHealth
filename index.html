@@ -13,7 +13,7 @@
   <script>
     var user=prompt();
     document.write(user);
-    var idChat="";
+    //var idChat="";
     // Initialize Firebase
     var config = {
       apiKey: "AIzaSyDexXq2xNPP6YsZs6k4ut-yl3mdSSAJVdI",
@@ -27,9 +27,10 @@
     var chatDB= firebase.database().ref('chat');
     var msjDB;
     // funcion para setear los mensajes
-    var setMsjDB = ()=>{
+    var setMsjDB = (idChat)=>{
       msjDB = firebase.database().ref('chat/'+idChat+'/Message');
     }
+
     
     var getMsjDB = ()=>{
       msjDB.limitToLast(20).on('value',function(snapshot){
@@ -66,23 +67,6 @@
     // funcion para agregar chats a la lista
     var agregarChat = (userAv)=>{
       var validate=true;
-      // chatDB.limitToLast(20).on('value',function(snapshot){
-      //   snapshot.forEach(function(e){
-      //     obj=e.val();
-      //     console.log(obj.Members);
-      //     if(obj.Members==[user,userAv]){
-      //       return validate= false;
-      //       break;
-      //     }else if(obj.Members==[userAv,user]){
-      //       return validate= false;
-      //       break;
-      //     }
-      //     else{
-      //       return validate= true;
-      //       break;
-      //     }
-      //   })
-      // });
       if(validate){
       chatDB.push({
         Members:[user,userAv],
@@ -118,7 +102,7 @@
         type : 'GET',
         success : function(req) {
           userAvData=JSON.parse(req);
-          $('#'+id+' .Nombre').html(userAvData.nombre +' ' +userAvData.apellido);
+          $('#'+id+' .Nombre').html(userAvData.nombre +' ' +userAvData.apellido+$('#'+id+' .Nombre').html());
           $('#'+id+' .Foto').attr('src',userAvData.foto);
         },
         error : function(xhr, status) {
@@ -151,14 +135,23 @@
           $( "#template" ).clone().prependTo( ".inbox_chat" );
           $('.inbox_chat #template').show(10);
           //$('.inbox_chat #template .Nombre').html(userAvData.nombre);
-          $('.inbox_chat #template .LastMsj').html("last mjs");
+          lastMsj="";
+          lastMsjDate="";
+          setMsjDB(e.key);
+          msjDB.limitToLast(1).on('value',function(snapshot){snapshot.forEach((e)=>{objeto=e.val();
+           lastMsj=objeto.Body;
+           lastMsjDate=objeto.Date;
+           console.log(objeto);
+           })});
+          $('.inbox_chat #template .LastMsj').html(lastMsj);
+          $('.inbox_chat #template .Fecha').html(lastMsjDate);
           $('.inbox_chat #template .chat_people').attr("id",userTo);
           $('.inbox_chat #template').attr("id",e.key);
           var id="";
           id=e.key;
           document.getElementById(id).addEventListener('click',()=>{
-            idChat=e.key;
-            setMsjDB();
+            //idChat=e.key;
+            setMsjDB(e.key);
             getMsjDB();
             $('#header-msj .Nombre').html($('#'+id+' .Nombre').html());
             console.log('oh yeah');
