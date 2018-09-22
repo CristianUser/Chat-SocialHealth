@@ -61,24 +61,27 @@
            
        });
    });
-
     };
     // funcion para agregar chats a la lista
     var agregarChat = (userAv)=>{
-      var validate=false;
-      chatDB.limitToLast(20).on('value',function(snapshot){
-        snapshot.forEach(function(e){
-          obj=e.val();
-          if(obj.Members==[user,userAv]){
-            return validate= false;
-          }else if(obj.Members==[userAv,user]){
-            return validate= false;
-          }
-          else{
-            return validate= true;
-          }
-        })
-      });
+      var validate=true;
+      // chatDB.limitToLast(20).on('value',function(snapshot){
+      //   snapshot.forEach(function(e){
+      //     obj=e.val();
+      //     console.log(obj.Members);
+      //     if(obj.Members==[user,userAv]){
+      //       return validate= false;
+      //       break;
+      //     }else if(obj.Members==[userAv,user]){
+      //       return validate= false;
+      //       break;
+      //     }
+      //     else{
+      //       return validate= true;
+      //       break;
+      //     }
+      //   })
+      // });
       if(validate){
       chatDB.push({
         Members:[user,userAv],
@@ -102,33 +105,38 @@
         Status:'Sent'
       })
     };
-   chatDB.limitToLast(20).on('value',function(snapshot){
-        
-        $(".inbox_chat").html(""); // Limpiamos todo el contenido del chat
-       
-          // Leer todos los mensajes en firebase
-          snapshot.forEach(function(e){
-              var objeto=e.val(); // Asignar todos los valores a un objeto
-              //console.log(e.key);
-                    if ( objeto.Members.indexOf(user) != -1 ) {
-                    // Copia el contenido al template y luego lo inserta en el chat
-                    $( "#template" ).clone().prependTo( ".inbox_chat" );
-                    $('.inbox_chat #template').show(10);
-                    $('.inbox_chat #template .Nombre').html(objeto.Members[0]);
-                    $('.inbox_chat #template .LastMsj').html(objeto.Members[1]);
-                    //$('.chat-list #template .Tiempo').html(objeto.Fecha);
-                    $('.inbox_chat #template').attr("id",e.key);
-                    var id="";
-                    id=e.key;
-                    document.getElementById(id).addEventListener('click',()=>{
-                      idChat=e.key;
-                      setMsjDB();
-                      getMsjDB();
-                      console.log('oh yeah');
-                    });
-                }
+  chatDB.limitToLast(20).on('value',function(snapshot){
+    $(".inbox_chat").html(""); // Limpiamos todo el contenido del chat
+    // Leer todos los mensajes en firebase
+    snapshot.forEach(function(e){
+      var objeto=e.val(); // Asignar todos los valores a un objeto
+      //console.log(e.key);
+        if ( objeto.Members.indexOf(user) != -1 ) {
+          let userTo=0;
+          if(objeto.Members[0]==user){
+            userTo=objeto.Members[1];
+            }else{
+              userTo=objeto.Members[0];
+              };
+              console.log(userTo);
+          // Copia el contenido al template y luego lo inserta en el chat
+          $( "#template" ).clone().prependTo( ".inbox_chat" );
+          $('.inbox_chat #template').show(10);
+          $('.inbox_chat #template .Nombre').html(objeto.Members[0]);
+          $('.inbox_chat #template .LastMsj').html(objeto.Members[1]);
+          $('.inbox_chat #template .chat_people').attr("id",userTo);
+          $('.inbox_chat #template').attr("id",e.key);
+          var id="";
+          id=e.key;
+          document.getElementById(id).addEventListener('click',()=>{
+            idChat=e.key;
+            setMsjDB();
+            getMsjDB();
+            console.log('oh yeah');
           });
+        }
       });
+  });
   </script>
 </head>
 <body>     
@@ -196,7 +204,7 @@
         </div>
       </div>
       <!-- Template de los chats -->
-      <div style="display:none;" value="" id="template" class=" chat_list">
+      <div style="display:none;" id="template" class=" chat_list">
           <div class="chat_people">
           <div class="chat_img"> <img src="http://placehold.it/50/55C1E7/fff&text=U"> </div>
           <div class="chat_ib">
@@ -232,18 +240,21 @@
           }else{
             state=true;
             setTimeout(parsear,300);
+            quitarUsers();
+            setTimeout(quitarUsers,1000);
           }
         }
+        //Parsear lista de usuarios disponibles
         var popover = document.getElementsByClassName('popover-body');
         var parsear=()=>{
           var userList = popover[0].children[1];
           for(let i=0;i<userList.children.length;i++){
             userList.children[i].addEventListener('click',()=>{
               console.log("click "+userList.children[i].value);
-
               agregarChat(userList.children[i].value);
+              userList.children[i].parentNode.removeChild(userList.children[i]);
             });
-            console.log(i);
+            //console.log(i);
           }
         };
         //popover 
@@ -262,6 +273,19 @@
             formulario.body.value="";
             e.preventDefault();
           });
+          //funcion para vaciar lista de chats agregados
+          var quitarUsers = ()=>{
+             lista = document.getElementById("user-list");
+             lista2 = document.getElementById("inbox_chat");
+             for (var x = 0; x < lista2.children.length+1; x++){
+            for (var i = 0; i < lista.children.length; i++) {
+              for (var e = 0; e < lista2.children.length; e++){
+                if(lista.children[i].value==lista2.children[e].children[0].id){
+                  lista.children[i].parentNode.removeChild(lista.children[i]);
+                }
+              }
+            }}
+          };
     </script>
   </body>
 </html>
