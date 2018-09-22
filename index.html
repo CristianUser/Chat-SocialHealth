@@ -11,7 +11,8 @@
   <script src="./js/jquery-3.3.1.js"></script>
   <script src="https://www.gstatic.com/firebasejs/5.5.1/firebase.js"></script>
   <script>
-    var user=prompt();
+    var user=5;
+    var userType=2;
     document.write(user);
     //var idChat="";
     // Initialize Firebase
@@ -28,12 +29,12 @@
     var msjDB;
     //obtener lista de usuarios para agregar chats
     
-    var getUserList = (id)=>{
+    var getUserList = (id,uType)=>{
       var parametros = {
         "id":id,
       };
       $.ajax({
-        url : 'request/getUserList2.php',
+        url : 'request/getUserList'+uType+'.php',
         data : parametros,
         type : 'GET',
         success : function(req) {
@@ -47,7 +48,7 @@
         }
       });
     };
-    getUserList(user);
+    getUserList(user,userType);
     // funcion para setear los mensajes
     var setMsjDB = (idChat)=>{
       msjDB = firebase.database().ref('chat/'+idChat+'/Message');
