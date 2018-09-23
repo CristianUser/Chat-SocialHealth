@@ -26,9 +26,9 @@ var formatDate = (date,fType)=>{
 
 if (h >= 12){
   h -= 12;
-  ampa="PM"
+  ampm="PM";
 }else{
-    ampm="AM"
+    ampm="AM";
 }
 if(h == 0){
     h =12;
@@ -210,7 +210,7 @@ snapshot.forEach(function(e){
     }
   });
 });
-$(window).ready(function() {
+
 //click en add
 var state=false;
 var stateC = ()=>{
@@ -237,13 +237,27 @@ for(let i=0;i<userList.children.length;i++){
   //console.log(i);
 }
 };
-//popover 
-$("[data-toggle=popover]").popover({
-html: true, 
-content: function() {
-return $('#popover-content').html();
-}  
-});
+//funcion para vaciar lista de chats agregados
+var quitarUsers = ()=>{
+  lista = document.getElementById("user-list");
+  lista2 = document.getElementById("inbox_chat");
+  for (var x = 0; x < lista2.children.length+1; x++){
+    for (var i = 0; i < lista.children.length; i++) {
+      for (var e = 0; e < lista2.children.length; e++){
+        if(lista.children[i].value==lista2.children[e].children[0].id){
+          lista.children[i].parentNode.removeChild(lista.children[i]);
+        }
+      }
+    }}
+  };
+  $(window).ready(function() {
+    //popover 
+    $("[data-toggle=popover]").popover({
+    html: true, 
+    content: function() {
+      return $('#popover-content').html();
+    }  
+    });
 //boton enviar mensaje
 
 var input = document.getElementById("msj-body");
@@ -262,17 +276,5 @@ boton.addEventListener('click',(e)=>{
   formulario.body.value="";
   e.preventDefault();
 });
-//funcion para vaciar lista de chats agregados
-var quitarUsers = ()=>{
-   lista = document.getElementById("user-list");
-   lista2 = document.getElementById("inbox_chat");
-   for (var x = 0; x < lista2.children.length+1; x++){
-  for (var i = 0; i < lista.children.length; i++) {
-    for (var e = 0; e < lista2.children.length; e++){
-      if(lista.children[i].value==lista2.children[e].children[0].id){
-        lista.children[i].parentNode.removeChild(lista.children[i]);
-      }
-    }
-  }}
-};
 });
+

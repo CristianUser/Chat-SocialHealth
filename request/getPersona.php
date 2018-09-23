@@ -7,9 +7,9 @@
     $myJSON = json_encode($result);
 
 
-    $img_file="../../SocialHealth/login/files/$id/perfil.png";
+    $img_file="../../SocialHealth/private/files/$id/perfil.png";
 if(!file_exists($img_file)){
-  $img_file = "../../SocialHealth/Tablas/images/perfil.jpg";
+  $img_file = "../../SocialHealth/assets/images/perfil.jpg";
 }
 
     $imgData = base64_encode(file_get_contents($img_file));

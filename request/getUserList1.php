@@ -11,9 +11,9 @@
     
     while($fila = $ejecutar->fetch_array()) : 
         $userID=$fila['id_usuario'];
-        $img_file="../../SocialHealth/login/files/$userID/perfil.png";
+        $img_file="../../SocialHealth/private/files/$userID/perfil.png";
         if(!file_exists($img_file)){
-          $img_file = "../../SocialHealth/Tablas/images/perfil.jpg";
+          $img_file = "../../SocialHealth/assets/images/perfil.jpg";
         }
         $imgData = base64_encode(file_get_contents($img_file));
         // Format the image SRC:  data:{mime};base64,{data};
