@@ -81,7 +81,6 @@ var setMsjDB = (idChat)=>{
   msjDB = firebase.database().ref('chat/'+idChat+'/Message');
 }
 
-
 var getMsjDB = (idChat)=>{
   msjDB.limitToLast(20).on('value',function(snapshot){  
   $(".msg_history").html(""); // Limpiar todo el contenido del chat
@@ -101,6 +100,7 @@ var getMsjDB = (idChat)=>{
     $('.msg_history #template'+type+' .Date').html(fDate);
     $('.msg_history #template'+type+' .Foto').attr("src",document.getElementById(idChat).children[0].children[0].children[0].src);
     $('.msg_history #template'+type).attr("id",e.key);
+    // document.getElementById(e.key).focus;
     // var id="";
     // id=e.key;
     // document.getElementById(id).addEventListener('click',()=>{
@@ -111,7 +111,12 @@ var getMsjDB = (idChat)=>{
         
        
    });
-});
+  });
+  var goToLast = ()=>{
+    var objDiv = document.getElementById("msg_history");
+    objDiv.scrollTop = objDiv.scrollHeight;
+  };
+  setTimeout(goToLast,50);
 };
 // funcion para agregar chats a la lista
 var agregarChat = (userAv)=>{
