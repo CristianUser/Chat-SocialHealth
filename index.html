@@ -11,10 +11,10 @@
   <script src="./js/jquery-3.3.1.js"></script>
   <script src="https://www.gstatic.com/firebasejs/5.5.1/firebase.js"></script>
   <script>
+    var meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
     var user=5;
     var userType=2;
-    document.write(user);
-    //var idChat="";
+    var chatS=false;
     // Initialize Firebase
     var config = {
       apiKey: "AIzaSyDexXq2xNPP6YsZs6k4ut-yl3mdSSAJVdI",
@@ -27,8 +27,50 @@
     firebase.initializeApp(config);
     var chatDB= firebase.database().ref('chat');
     var msjDB;
-    //obtener lista de usuarios para agregar chats
     
+    //formatear fechas
+    var formatDate = (date,fType)=>{
+      var d= date.getUTCDate();
+      var m= date.getMonth();
+      var y= date.getFullYear();
+      var h=date.getHours();
+      var min= date.getMinutes();
+      var ampm;
+      var now = new Date();
+      var fDate;
+
+    if (h >= 12){
+      h -= 12;
+      ampa="PM"
+    }else{
+        ampm="AM"
+    }
+    if(h == 0){
+        h =12;
+    }
+    if (h<10){h = "0"+h;}
+    var hora = h;
+    if (min<10){min = "0"+min;}
+    var minutos = min;
+    
+    if(fType== 1){
+      fDate=h+':'+min+' '+ampm+"  |  "+meses[m];
+    }else if(fType==2){
+      fDate=meses[m].substring(0,3)+' '+d;
+      if(now.getMonth() == date.getMonth() && now.getFullYear()==date.getFullYear()){
+        if(now.getUTCDate()==date.getUTCDate()){
+         fDate="Hoy";
+        }else if (now.getUTCDate()==date.getUTCDate()+1) {
+         fDate="Ayer";
+        }else{
+          fDate="";
+        }
+      }
+    }
+    return fDate;
+    };
+
+    //obtener lista de usuarios para agregar chats
     var getUserList = (id,uType)=>{
       var parametros = {
         "id":id,
@@ -56,33 +98,31 @@
 
     
     var getMsjDB = (idChat)=>{
-      msjDB.limitToLast(20).on('value',function(snapshot){
-        
-        $(".msg_history").html(""); // Limpiamos todo el contenido del chat
-       
+      msjDB.limitToLast(20).on('value',function(snapshot){  
+      $(".msg_history").html(""); // Limpiar todo el contenido del chat
        // Leer todos los mensajes en firebase
-       snapshot.forEach(function(e){
-           var objeto=e.val(); // Asignar todos los valores a un objeto
-           var type="";
-           //console.log(objeto);
-                //if ( objeto.Members.indexOf(user) != -1 ) 
-                if(objeto.Author==user){
-                  type="out";
-                }else{type="in";}
-                // Copia el contenido al template y luego lo inserta en el chat
-                $( "#template"+type ).clone().appendTo( ".msg_history" );
-                $('.msg_history #template'+type).show(10);
-                $('.msg_history #template'+type+' .Body').html(objeto.Body);
-                $('.msg_history #template'+type+' .Date').html(objeto.Date);
-                $('.msg_history #template'+type+' .Foto').attr("src",document.getElementById(idChat).children[0].children[0].children[0].src);
-                $('.msg_history #template'+type).attr("id",e.key);
-                // var id="";
-                // id=e.key;
-                // document.getElementById(id).addEventListener('click',()=>{
-                //   idChat=e.key;
-                //   setMsjDB();
-                //   console.log('oh yeah');
-                // });
+      snapshot.forEach(function(e){
+        var objeto=e.val();
+        var type="";
+        if(objeto.Author==user){type="out";}else{type="in";}
+        //formatear fecha
+        var date = new Date(Date.parse(objeto.Date));
+        fDate=formatDate(date,1);
+
+        // Copiar el contenido al template y luego lo inserta en el chat     
+        $( "#template"+type ).clone().appendTo( ".msg_history" );
+        $('.msg_history #template'+type).show(10);
+        $('.msg_history #template'+type+' .Body').html(objeto.Body);
+        $('.msg_history #template'+type+' .Date').html(fDate);
+        $('.msg_history #template'+type+' .Foto').attr("src",document.getElementById(idChat).children[0].children[0].children[0].src);
+        $('.msg_history #template'+type).attr("id",e.key);
+        // var id="";
+        // id=e.key;
+        // document.getElementById(id).addEventListener('click',()=>{
+        //   idChat=e.key;
+        //   setMsjDB();
+        //   console.log('oh yeah');
+        // });
             
            
        });
@@ -100,17 +140,11 @@
     };
     // funcion para enviar mensajes
     var enviarMsj = (body)=>{
-      var formatDate= new Date(); 
-        var d= formatDate.getUTCDate();
-        var m= formatDate.getMonth()+1;
-        var y= formatDate.getFullYear();
-        var h=formatDate.getHours();
-        var min= formatDate.getMinutes();
-        fDate= d+"/"+m+"/"+y+" "+h+":"+min;
+      var aDate= new Date(); 
       msjDB.push({
         Author:user,
         Body:body,
-        Date:fDate,
+        Date:aDate.toString(),
         Status:'Sent'
       })
     };
@@ -162,23 +196,26 @@
           lastMsj="";
           lastMsjDate="";
           setMsjDB(e.key);
-          msjDB.limitToLast(1).on('value',function(snapshot){snapshot.forEach((e)=>{objeto=e.val();
-           lastMsj=objeto.Body;
-           lastMsjDate=objeto.Date;
-           console.log(objeto);
-           })});
+          msjDB.limitToLast(1).on('value',function(snapshot){snapshot.forEach((e)=>{objeto=e.val();lastMsj=objeto.Body;lastMsjDate=objeto.Date;})});
+          //formatear fecha
+            if(lastMsj!=""){
+            var ftDate = new Date(Date.parse(lastMsjDate));
+            fDate = formatDate(ftDate,2);
+            }else{
+              fDate="";
+            }
           $('.inbox_chat #template .LastMsj').html(lastMsj);
-          $('.inbox_chat #template .Fecha').html(lastMsjDate);
+          $('.inbox_chat #template .Fecha').html(fDate);
           $('.inbox_chat #template .chat_people').attr("id",userTo);
           $('.inbox_chat #template').attr("id",e.key);
           var id="";
           id=e.key;
           document.getElementById(id).addEventListener('click',()=>{
-            //idChat=e.key;
+            chatS=true;
             setMsjDB(e.key);
             getMsjDB(e.key);
             $('#header-msj .Nombre').html($('#'+id+' .Nombre').html() );
-            console.log('oh yeah');
+            //console.log('oh yeah');
           });
         }
       });
@@ -232,7 +269,7 @@
               <div class="type_msg">
                 <div class="input_msg_write">
                   <form name="formulario">
-                    <input autocomplete="off" name="body" type="text" class="write_msg" placeholder="Escribir Mensaje" />
+                    <input id="msj-body" autocomplete="off" name="body" type="text" class="write_msg" placeholder="Escribir Mensaje" />
                     <button id="enviarbtn" class="msg_send_btn" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
                   </form>
                 </div>
@@ -275,6 +312,7 @@
         var stateC = ()=>{
           if(state){
             state=false;
+            setTimeout(quitarUsers,1000);
           }else{
             state=true;
             setTimeout(parsear,300);
@@ -288,7 +326,7 @@
           var userList = popover[0].children[1];
           for(let i=0;i<userList.children.length;i++){
             userList.children[i].addEventListener('click',()=>{
-              console.log("click "+userList.children[i].value);
+              //console.log("click "+userList.children[i].value);
               agregarChat(userList.children[i].value);
               userList.children[i].parentNode.removeChild(userList.children[i]);
             });
@@ -303,16 +341,18 @@
         }  
         });
         //boton enviar mensaje
-        formulario.body.addEventListener('keydown.enter',()=>{
-          if(formulario.body.value!=""){
-            enviarMsj(formulario.body.value);
-            }
-            formulario.body.value="";
-            e.preventDefault();
-        });
+
+        var input = document.getElementById("msj-body");
+          input.addEventListener("keydown", function(event) {
+               if (event.keyCode == 13) {
+                  document.getElementById("enviarbtn").click();
+                  event.preventDefault();
+               }
+              //return false;
+          });
         var boton = document.getElementById("enviarbtn");
           boton.addEventListener('click',(e)=>{
-            if(formulario.body.value!=""){
+            if(formulario.body.value!="" && chatS){
             enviarMsj(formulario.body.value);
             }
             formulario.body.value="";
