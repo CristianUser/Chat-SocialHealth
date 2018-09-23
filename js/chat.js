@@ -215,13 +215,14 @@ snapshot.forEach(function(e){
 var state=false;
 var stateC = ()=>{
 if(state){
+  setTimeout(quitarUsers,1000);
   state=false;
-  setTimeout(quitarUsers,1000);
 }else{
-  state=true;
-  setTimeout(parsear,300);
   quitarUsers();
+  setTimeout(parsear,300);
+  setTimeout(quitarUsers,500);
   setTimeout(quitarUsers,1000);
+  state=true;
 }
 }
 //Parsear lista de usuarios disponibles
@@ -241,7 +242,7 @@ for(let i=0;i<userList.children.length;i++){
 var quitarUsers = ()=>{
   lista = document.getElementById("user-list");
   lista2 = document.getElementById("inbox_chat");
-  for (var x = 0; x < lista2.children.length+1; x++){
+  for (var x = 0; x < lista2.children.length+4; x++){
     for (var i = 0; i < lista.children.length; i++) {
       for (var e = 0; e < lista2.children.length; e++){
         if(lista.children[i].value==lista2.children[e].children[0].id){
@@ -250,31 +251,32 @@ var quitarUsers = ()=>{
       }
     }}
   };
-  $(window).ready(function() {
-    //popover 
-    $("[data-toggle=popover]").popover({
-    html: true, 
-    content: function() {
-      return $('#popover-content').html();
-    }  
-    });
+$(window).ready(function() {
+    //popover
+      $("[data-toggle=popover]").popover({
+      html: true, 
+      content: function() {
+        return $('#popover-content').html();
+      }  
+      });
+    
 //boton enviar mensaje
 
-var input = document.getElementById("msj-body");
-input.addEventListener("keydown", function(event) {
-     if (event.keyCode == 13) {
-        document.getElementById("enviarbtn").click();
-        event.preventDefault();
-     }
-    //return false;
-});
-var boton = document.getElementById("enviarbtn");
-boton.addEventListener('click',(e)=>{
-  if(formulario.body.value!="" && chatS){
-  enviarMsj(formulario.body.value);
-  }
-  formulario.body.value="";
-  e.preventDefault();
-});
+  var input = document.getElementById("msj-body");
+  input.addEventListener("keydown", function(event) {
+      if (event.keyCode == 13) {
+          document.getElementById("enviarbtn").click();
+          event.preventDefault();
+      }
+      //return false;
+  });
+  var boton = document.getElementById("enviarbtn");
+  boton.addEventListener('click',(e)=>{
+    if(formulario.body.value!="" && chatS){
+    enviarMsj(formulario.body.value);
+    }
+    formulario.body.value="";
+    e.preventDefault();
+  });
 });
 
